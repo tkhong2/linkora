@@ -1,4 +1,4 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
+require('dotenv').config();
 const express = require('express');
 const http = require('http');
 const cors = require('cors');
@@ -10,9 +10,22 @@ const { initSocket } = require('./socket/index');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: process.env.CLIENT_URL, credentials: true } });
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(s => s.trim())
+  : ['http://localhost:5173'];
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+const corsOptions = {
+  origin: (origin, cb) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return cb(null, true);
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(null, true); // temporarily allow all during setup
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+const io = new Server(server, { cors: corsOptions });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
