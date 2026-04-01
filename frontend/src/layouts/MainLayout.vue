@@ -88,6 +88,22 @@
         <span>Alerts</span>
         <span v-if="notifStore.unreadCount" class="badge" style="position:absolute;top:2px;right:2px;font-size:9px;padding:1px 4px">{{ notifStore.unreadCount }}</span>
       </RouterLink>
+      <!-- Profile + logout on mobile -->
+      <div class="bottom-nav-item" style="position:relative" @click="mobileMenu = !mobileMenu">
+        <img :src="auth.user?.avatar || avatar(auth.user?.username)" class="avatar" width="26" height="26" alt="me" />
+        <span>Me</span>
+        <!-- Popup menu -->
+        <Transition name="fade">
+          <div v-if="mobileMenu" style="position:absolute;bottom:60px;right:0;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-md);min-width:160px;overflow:hidden;z-index:100">
+            <RouterLink :to="`/profile/${auth.user?._id}`" class="mobile-menu-item" @click="mobileMenu=false">
+              <fa :icon="['fas','user']"/> Profile
+            </RouterLink>
+            <button class="mobile-menu-item danger" @click="logout">
+              <fa :icon="['fas','right-from-bracket']"/> Logout
+            </button>
+          </div>
+        </Transition>
+      </div>
     </nav>
 
     <ToastContainer />
@@ -110,6 +126,7 @@ const auth = useAuthStore();
 const notifStore = useNotificationStore();
 const chatStore = useChatStore();
 const pendingCount = ref(0);
+const mobileMenu = ref(false);
 
 const avatar = name => `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'U')}&background=1877f2&color=fff`;
 
@@ -138,7 +155,9 @@ async function logout() { await auth.logout(); router.push('/login'); }
 
 <style>
 .nav-icon { width: 18px !important; text-align: center; font-size: 16px; }
-/* FA icon sizing */
 .nav-item .svg-inline--fa { width: 18px; height: 18px; }
 .post-action-btn .svg-inline--fa { font-size: 15px; }
+.mobile-menu-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 16px; background: none; border: none; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; text-decoration: none; transition: background .15s; }
+.mobile-menu-item:hover { background: var(--surface2); }
+.mobile-menu-item.danger { color: var(--danger); }
 </style>
